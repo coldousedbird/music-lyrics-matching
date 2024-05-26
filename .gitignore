@@ -1,6 +1,7 @@
 # my
 data/
 .syncedlyrics
+*.db
 
 # venv
 mlm-venv/

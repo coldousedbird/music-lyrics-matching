@@ -9,7 +9,7 @@ def download_lrc(artist):
 
         if not song.startswith(artist) and (song.endswith(".mp3") or song.endswith(".wav")):
             print("\n>>>", song) # " - ", song.startswith(artist)
-            new_name = artist + " - " + song.lstrip("0123456789. ")
+            new_name = artist + " - " + song.lstrip("0123456789. - ")
             try:
                 lrc_path = file_path+new_name[0:-4]+".lrc"
                 syncedlyrics.search(new_name[0:-4], save_path=lrc_path)
