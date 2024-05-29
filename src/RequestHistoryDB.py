@@ -11,8 +11,8 @@ class RequestHistoryDB:
             cursor = connection.cursor()
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS Requests (
-                    Date TEXT PRIMARY KEY, 
-                    Name TEXT,
+                    Date TEXT PRIMARY KEY NOT NULL, 
+                    Name TEXT NOT NULL,
                     Song BLOB NOT NULL, 
                     Lyrics BLOB NOT NULL, 
                     Comment TEXT)
