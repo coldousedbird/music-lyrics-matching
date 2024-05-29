@@ -122,9 +122,10 @@ class App(QWidget):
             self.load_lyrics_label.setText(f"selected: {self.Processing.lyrics_path}")
 
     def on_click_process_btn(self):
-        if self.song and self.lyrics:
+        if self.Processing.song and self.Processing.lyrics:
             self.processing_label.setText("result: ")
             self.Processing.process()
+            self.processing_result.setText(self.Processing.result)
         elif not self.song:
             self.processing_label.setText("load song before processing")
         elif not self.lyrics:
