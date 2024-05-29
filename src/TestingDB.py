@@ -1,9 +1,9 @@
 import os
-from RequestHistoryDB import RequestHistoryDB 
+from RequestsDB import RequestsDB 
 
 if __name__ == "__main__":
     # init
-    tested_db = RequestHistoryDB()
+    tested_db = RequestsDB()
     # creating new
     tested_db.create_new("tested_db.db")
     tested_db.create_new("rubbish.db")

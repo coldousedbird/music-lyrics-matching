@@ -1,6 +1,6 @@
 import sqlite3
 
-class RequestHistoryDB:
+class RequestsDB:
     def set_name(self, name):
         self.name = name
 
@@ -30,7 +30,8 @@ class RequestHistoryDB:
             return
         with sqlite3.connect(self.name) as connection:
             cursor = connection.cursor()
-            return cursor.execute("SELECT * FROM Requests WHERE Date = ?", (date,)).fetchall()
+            result = cursor.execute("SELECT Song, Lyrics FROM Requests WHERE Date = ?", (date,)).fetchall()[0]
+            return result[0], result[1]
 
     def add(self, date, name, song, lyrics, comment):
         if not self.name:
@@ -51,5 +52,5 @@ class RequestHistoryDB:
 
 
 if __name__ == "__main__":
-    db = RequestHistoryDB()
+    db = RequestsDB()
     db.create_new(name = 'request_history.db')
