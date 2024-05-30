@@ -8,15 +8,6 @@ class ProcessingTab(QWidget):
 
         self.database = database
 
-        # Data init
-        # self.song_path = None
-        # self.song = None
-
-        # self.lyrics_path = None
-        # self.lyrics = None
-
-        # self.request_time = None
-        # self.result = None
         self.processing = Processing()
 
         layout = QVBoxLayout()
@@ -57,22 +48,21 @@ class ProcessingTab(QWidget):
         # save
         save_button = QPushButton("save")
         layout.addWidget(save_button)
-        self.save_label = QLabel("")
-        layout.addWidget(self.save_label)
         save_button.clicked.connect(self.on_click_save_btn)
 
     def extract_filename(self, path):
         file = path.rsplit("/", 1)
         return file[-1] if len(path) > 1 else path
 
-    def throw_warning_messagebox(self, title_text, text):
+    def throw_messagebox(self, title_text, text, icon):
         message_box = QMessageBox()
         message_box.setWindowTitle(title_text)
         message_box.setText(text)
-        message_box.setIcon(QMessageBox.Warning)
-        message_box.setStandardButtons(QMessageBox.Ok | QMessageBox.No)
-        message_box.setDefaultButton(QMessageBox.No)
+        message_box.setIcon(icon)
+        message_box.setStandardButtons(QMessageBox.StandardButton.Ok)
+        message_box.setDefaultButton(QMessageBox.StandardButton.Ok)
         message_box.exec()
+
 
     def on_click_load_song_btn(self):
         file_dialog = QFileDialog(self)
@@ -89,22 +79,23 @@ class ProcessingTab(QWidget):
         file_dialog.setNameFilter("Text files (*.txt)")
         if file_dialog.exec():
             self.processing.lyrics_path = file_dialog.selectedFiles()[0]
-            with open(self.processing.lyrics_path, 'rb') as lyrics:
+            with open(self.processing.lyrics_path, 'r') as lyrics:
                 self.processing.lyrics = lyrics.read()
             self.processing.lyrics_path = self.extract_filename(file_dialog.selectedFiles()[0])
             self.load_lyrics_label.setText(f"selected: {self.processing.lyrics_path}")
 
     def on_click_process_btn(self):
         if self.processing.song and self.processing.lyrics:
-            self.result_label.setText("result: ")
             self.processing.process()
-            self.result_text.setText(self.processing.result)
+            if self.processing.result:
+                self.result_text.setText(self.processing.result)
+            else:
+                self.result_text.setText("not found")
         elif not self.processing.song:
-            self.throw_warning_messagebox("Above!", "you summoned great toad warrior. fight!")
-            # self.result_label.setText("load song before processing")
+            self.throw_messagebox("Warning", "Load song before start of the processing.", QMessageBox.Icon.Warning)
         elif not self.processing.lyrics:
-            self.throw_warning_messagebox("Oh!", "beware of the great huge toad from the sky, Traveler!")
-            # self.result_label.setText("load lyrics before processing")
+            self.throw_messagebox("Warning", "Load lyrics before start of the processing.", QMessageBox.Icon.Warning)
+
 
     def on_click_save_btn(self):
         if self.processing.result:
@@ -113,4 +104,6 @@ class ProcessingTab(QWidget):
                                       song=self.processing.song, 
                                       lyrics=self.processing.result, 
                                       comment=self.comment_line.text())
-            self.throw_warning_messagebox("wise advise", "wish you could never see the toad king, in your pity life, kid")
+            self.throw_messagebox("Information", "Request saved successfully.", QMessageBox.Icon.Information)
+        else:
+            self.throw_messagebox("Warning", "You have nothing to save yet.", QMessageBox.Icon.Warning)

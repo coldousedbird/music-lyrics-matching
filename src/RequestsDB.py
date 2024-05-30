@@ -30,8 +30,8 @@ class RequestsDB:
             return
         with sqlite3.connect(self.name) as connection:
             cursor = connection.cursor()
-            result = cursor.execute("SELECT Song, Lyrics FROM Requests WHERE Date = ?", (date,)).fetchall()[0]
-            return result[0], result[1]
+            return cursor.execute("SELECT Name, Song, Lyrics FROM Requests WHERE Date = ?", (date,)).fetchall()[0]
+            
 
     def add(self, date, name, song, lyrics, comment):
         if not self.name:

@@ -1,5 +1,6 @@
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QTableWidget, QTableWidgetItem
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QTableWidget, QTableWidgetItem, QMessageBox, QFileDialog
 from functools import partial
+import os
 
 
 class HistoryTab(QWidget):
@@ -21,15 +22,32 @@ class HistoryTab(QWidget):
 
         self.update_history()
 
-    def listen_request(self, date):
-        song, lyrics = self.database.read_one(date)
-        # with open("temp/playing_song.mp3", "wb") as audio:
-        #     audio = song
-        print("listen btn pressed: ", date)
+    def download_request(self, date):
+        dir_path = QFileDialog.getExistingDirectory(
+            caption="Select directory to download",
+            directory=os.getenv("HOME"),
+        )
+        name, song, lyrics = self.database.read_one(date)
+
+        path = dir_path + "/" + name
+        with open(path, "wb") as file:
+            file.write(song)
+        path = path[:-4] + ".lrc"
+        with open(path, "w") as file:
+            file.write(lyrics)
+
         
     def remove_request(self, date):
-        self.database.remove(date)
-        self.update_history()
+        message_box = QMessageBox()
+        message_box.setWindowTitle("Warning")
+        message_box.setText("Are you sure? This action is not reversible.")
+        message_box.setIcon(QMessageBox.Icon.Warning)
+        message_box.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        message_box.setDefaultButton(QMessageBox.StandardButton.No)
+        reply = message_box.exec()
+        if reply == QMessageBox.StandardButton.Yes:
+            self.database.remove(date)
+            self.update_history()
 
 
     def update_history(self):
@@ -45,9 +63,9 @@ class HistoryTab(QWidget):
             self.table.setItem(id, 1, QTableWidgetItem(request[1]))
             self.table.setItem(id, 2, QTableWidgetItem(request[4]))
 
-            listen_btn = QPushButton("listen")
-            listen_btn.clicked.connect(partial(self.listen_request, request[0]))
-            self.table.setCellWidget(id, 3, listen_btn)
+            download_btn = QPushButton("download")
+            download_btn.clicked.connect(partial(self.download_request, request[0]))
+            self.table.setCellWidget(id, 3, download_btn)
             
             remove_btn = QPushButton("remove")
             remove_btn.clicked.connect(partial(self.remove_request, request[0]))
