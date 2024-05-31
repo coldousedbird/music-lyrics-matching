@@ -1,6 +1,6 @@
-# python src/ui/app.py
+# python src/ui/aзнерpp.py
 import sys
-from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QTabWidget, QPushButton, QLabel, QTextEdit, QFileDialog, QLineEdit, QTableWidget, QTableWidgetItem
+from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QTabWidget
 from RequestsDB import RequestsDB
 from Processing import Processing
 from ProcessingTab import ProcessingTab
@@ -12,30 +12,26 @@ class App(QWidget):
         self.setWindowTitle("music_lyric_matcher")
         self.resize(600, 500)
 
-        # # PROCESSING MODULE SETUP
-        # self.Processing = Processing()
-
         # DATA BASE SETUP
         DB_NAME = 'request_history.db'
-        self.database = RequestsDB()
-        self.database.set_name(DB_NAME)
+        database = RequestsDB(DB_NAME)
 
         # COMMON LAYOUT
-        app_layout = QVBoxLayout()
-        self.setLayout(app_layout)
+        layout = QVBoxLayout()
+        self.setLayout(layout)
 
         # TABS INIT
         tabs = QTabWidget()
         tabs.setObjectName("tabs")
-        app_layout.addWidget(tabs)
+        layout.addWidget(tabs)
         
         # PROCESSING TAB SETUP
-        self.processing_tab = ProcessingTab(self.database)
+        self.processing_tab = ProcessingTab(database)
         self.processing_tab.setObjectName("processing")
         tabs.addTab(self.processing_tab, "processing")
 
         # HISTORY TAB SETUP
-        self.history_tab = HistoryTab(self.database)
+        self.history_tab = HistoryTab(database)
         self.history_tab.setObjectName("history")
         tabs.addTab(self.history_tab, "history")
 

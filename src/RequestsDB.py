@@ -1,12 +1,11 @@
 import sqlite3
 
 class RequestsDB:
-    def set_name(self, name):
+    def __init__(self, name):
         self.name = name
 
 
-    def create_new(self, name):
-        self.set_name(name)
+    def create_new(self):
         with sqlite3.connect(self.name) as connection:
             cursor = connection.cursor()
             cursor.execute('''
@@ -14,7 +13,7 @@ class RequestsDB:
                     Date TEXT PRIMARY KEY NOT NULL, 
                     Name TEXT NOT NULL,
                     Song BLOB NOT NULL, 
-                    Lyrics BLOB NOT NULL, 
+                    Lyrics TEXT NOT NULL, 
                     Comment TEXT)
             ''')
 
@@ -23,7 +22,7 @@ class RequestsDB:
             return
         with sqlite3.connect(self.name) as connection:
             cursor = connection.cursor()
-            return cursor.execute("SELECT * FROM Requests").fetchall()
+            return cursor.execute("SELECT Date, Name, Comment FROM Requests").fetchall()
         
     def read_one(self, date):
         if not self.name:
@@ -52,5 +51,5 @@ class RequestsDB:
 
 
 if __name__ == "__main__":
-    db = RequestsDB()
-    db.create_new(name = 'request_history.db')
+    db = RequestsDB('request_history.db')
+    db.create_new()

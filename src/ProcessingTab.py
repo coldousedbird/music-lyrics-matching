@@ -21,13 +21,13 @@ class ProcessingTab(QWidget):
         self.load_song_label = QLabel("")
         layout.addWidget(self.load_song_label)
         
-        # lyrics loading
-        load_text_button = QPushButton("load lyrics (.txt)")
-        layout.addWidget(load_text_button)
-        load_text_button.clicked.connect(self.on_click_load_lyrics_btn)
+        # # lyrics loading
+        # load_text_button = QPushButton("load lyrics (.txt)")
+        # layout.addWidget(load_text_button)
+        # load_text_button.clicked.connect(self.on_click_load_lyrics_btn)
 
-        self.load_lyrics_label = QLabel("")
-        layout.addWidget(self.load_lyrics_label)
+        # self.load_lyrics_label = QLabel("")
+        # layout.addWidget(self.load_lyrics_label)
 
         # processing btn
         process_button = QPushButton("process")
@@ -74,18 +74,18 @@ class ProcessingTab(QWidget):
             self.processing.song_path = self.extract_filename(file_dialog.selectedFiles()[0])
             self.load_song_label.setText(f"selected: {self.processing.song_path}")
 
-    def on_click_load_lyrics_btn(self):
-        file_dialog = QFileDialog(self)
-        file_dialog.setNameFilter("Text files (*.txt)")
-        if file_dialog.exec():
-            self.processing.lyrics_path = file_dialog.selectedFiles()[0]
-            with open(self.processing.lyrics_path, 'r') as lyrics:
-                self.processing.lyrics = lyrics.read()
-            self.processing.lyrics_path = self.extract_filename(file_dialog.selectedFiles()[0])
-            self.load_lyrics_label.setText(f"selected: {self.processing.lyrics_path}")
+    # def on_click_load_lyrics_btn(self):
+    #     file_dialog = QFileDialog(self)
+    #     file_dialog.setNameFilter("Text files (*.txt)")
+    #     if file_dialog.exec():
+    #         self.processing.lyrics_path = file_dialog.selectedFiles()[0]
+    #         with open(self.processing.lyrics_path, 'r') as lyrics:
+    #             self.processing.lyrics = lyrics.read()
+    #         self.processing.lyrics_path = self.extract_filename(file_dialog.selectedFiles()[0])
+    #         self.load_lyrics_label.setText(f"selected: {self.processing.lyrics_path}")
 
     def on_click_process_btn(self):
-        if self.processing.song and self.processing.lyrics:
+        if self.processing.song: # and self.processing.lyrics
             self.processing.process()
             if self.processing.result:
                 self.result_text.setText(self.processing.result)
@@ -93,8 +93,8 @@ class ProcessingTab(QWidget):
                 self.result_text.setText("not found")
         elif not self.processing.song:
             self.throw_messagebox("Warning", "Load song before start of the processing.", QMessageBox.Icon.Warning)
-        elif not self.processing.lyrics:
-            self.throw_messagebox("Warning", "Load lyrics before start of the processing.", QMessageBox.Icon.Warning)
+        # elif not self.processing.lyrics:
+        #     self.throw_messagebox("Warning", "Load lyrics before start of the processing.", QMessageBox.Icon.Warning)
 
 
     def on_click_save_btn(self):

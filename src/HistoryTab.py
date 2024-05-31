@@ -61,7 +61,7 @@ class HistoryTab(QWidget):
         for request in requests:
             self.table.setItem(id, 0, QTableWidgetItem(request[0]))
             self.table.setItem(id, 1, QTableWidgetItem(request[1]))
-            self.table.setItem(id, 2, QTableWidgetItem(request[4]))
+            self.table.setItem(id, 2, QTableWidgetItem(request[2]))
 
             download_btn = QPushButton("download")
             download_btn.clicked.connect(partial(self.download_request, request[0]))
