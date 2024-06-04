@@ -78,7 +78,7 @@ Repository contains
   - *HistoryTab.py* - history tab class
   - *Processing.py* - processing module class
   - *RequestsDB.py* - database communication class
-  ![class diagram](schemes/class_diagram.jpg)
+![class diagram](schemes/class_diagram.jpg)
 - **schemes** - scheme images (including that one above ↑)
 - *.gitignore* - ignored files
 - *LICENSE* - GNU GPL-3.0 license
