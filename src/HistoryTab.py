@@ -1,13 +1,16 @@
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QTableWidget, QTableWidgetItem, QMessageBox, QFileDialog
 from functools import partial
-import os
+from os import getenv
+from RequestsDB import RequestsDB
 
 
 class HistoryTab(QWidget):
-    def __init__(self, database):
+    def __init__(self) -> None:
         super().__init__()
-
-        self.database = database
+        
+        # DATA BASE SETUP
+        DB_NAME = 'request_history.db'
+        self.database = RequestsDB(DB_NAME)
 
         layout = QVBoxLayout()
         self.setLayout(layout)
@@ -22,12 +25,12 @@ class HistoryTab(QWidget):
 
         self.update_history()
 
-    def download_request(self, date):
+    def download_request(self, date: str) -> None:
         dir_path = QFileDialog.getExistingDirectory(
             caption="Select directory to download",
-            directory=os.getenv("HOME"),
+            directory=getenv("HOME"),
         )
-        name, song, lyrics = self.database.read_one(date)
+        name, song, lyrics = self.database.get_request(date)
 
         path = dir_path + "/" + name
         with open(path, "wb") as file:
@@ -36,8 +39,7 @@ class HistoryTab(QWidget):
         with open(path, "w") as file:
             file.write(lyrics)
 
-        
-    def remove_request(self, date):
+    def remove_request(self, date: str) -> None:
         message_box = QMessageBox()
         message_box.setWindowTitle("Warning")
         message_box.setText("Are you sure? This action is not reversible.")
@@ -46,15 +48,14 @@ class HistoryTab(QWidget):
         message_box.setDefaultButton(QMessageBox.StandardButton.No)
         reply = message_box.exec()
         if reply == QMessageBox.StandardButton.Yes:
-            self.database.remove(date)
+            self.database.remove_request(date)
             self.update_history()
 
-
-    def update_history(self):
+    def update_history(self) -> None:
         self.table.clear()
         self.table.setColumnCount(5)
         self.table.setHorizontalHeaderLabels(["date", "song", "comment", "", ""])
-        requests = self.database.read()
+        requests = self.database.get_all_requests()
         self.table.setRowCount(len(requests))
 
         id = 0
