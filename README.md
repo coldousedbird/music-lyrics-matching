@@ -8,11 +8,11 @@ App uses such libs as:
 - pydub and librosa for operations with audio 
 
 ## Contents
-- [Installation](##Installation)
-- [Usage](##Usage)
-- [Project structure](##Structure)
-- [Contributing](##Contributing)
-- [License](##License)
+- [Installation](#Installation)
+- [Usage](#Usage)
+- [Project structure](#Structure)
+- [Contributing](#Contributing)
+- [License](#License)
 
 ## Installation
 
