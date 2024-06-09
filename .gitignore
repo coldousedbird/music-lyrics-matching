@@ -3,6 +3,8 @@ data/
 temp/
 .syncedlyrics
 *.db
+*.wav
+*.mp3
 
 # venv
 mlm-venv/

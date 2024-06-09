@@ -70,7 +70,7 @@ class Processing:
     def recognize(self) -> None:
         self.request_time = datetime.now().strftime('%d-%m-%Y %H:%M:%S')
         # Загрузка аудио файла
-        song_path = "temp/processed_song.mp3"
+        song_path = "src/temp/processed_song.mp3"
         with open(song_path, "wb") as song:
             song.write(self.song)
         
@@ -84,18 +84,21 @@ class Processing:
         threshold = -30  # Порог для определения наличия вокала
         segments = []
         current_segment = None
-        for i, sample in enumerate(self.audio.raw_data):
-            if abs(sample) > threshold:
-                if current_segment is None:
-                    current_segment = self.audio[i:i+1]
-            else:
-                if current_segment is not None:
-                    segments.append(current_segment)
-                    current_segment = None
-        if current_segment is not None:
-            segments.append(current_segment)
+        print('type: ', type(self.audio.raw_data))
+        print('len: ', len(self.audio))
 
-        print(segments)
+        # for i, sample in enumerate(self.audio.raw_data):
+        #     if abs(sample) > threshold:
+        #         if current_segment is None:
+        #             current_segment = self.audio[i:i+1]
+        #     else:
+        #         if current_segment is not None:
+        #             segments.append(current_segment)
+        #             current_segment = None
+        # if current_segment is not None:
+        #     segments.append(current_segment)
+        # print('blyaha')
+        # print( segments)
 
         # # Сохранение очищенной аудиозаписи и отдельных фрагментов
         # denoised_audio.export("output.mp3", format="mp3")
@@ -156,7 +159,7 @@ def test_Processing() -> None:
 
     p.recognize()
 
-    print(p.result)
+    # print(p.result)
 
     # exit(app.exec())
 
