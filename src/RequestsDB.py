@@ -19,12 +19,12 @@ class RequestsDB:
                         Comment TEXT)
                 ''')
 
-    def get_all_requests(self: str) -> list[str, str, str]:
+    def get_all_requests(self: str) -> 'list[str, str, str]':
         with sqlite3.connect(self.name) as connection:
             cursor = connection.cursor()
             return cursor.execute("SELECT Date, Name, Comment FROM Requests").fetchall()
         
-    def get_request_data(self, date: str) -> list[str, bytes, str]:
+    def get_request_data(self, date: str) -> 'list[str, bytes, str]':
         with sqlite3.connect(self.name) as connection:
             cursor = connection.cursor()
             return cursor.execute("SELECT Name, Song, Lyrics FROM Requests WHERE Date = ?", (date,)).fetchall()[0]
@@ -35,7 +35,7 @@ class RequestsDB:
             cursor.execute("INSERT INTO Requests (Date, Name, Song, Lyrics) VALUES (?, ?, ?, ?) ON CONFLICT (DATE) DO NOTHING", 
                            (date, name, song, lyrics))
             
-    def add_comment(self, date: str, comment: str):
+    def add_comment(self, date: str, comment: str) -> None:
         with sqlite3.connect(self.name) as connection:
             cursor = connection.cursor()
             cursor.execute("UPDATE Requests SET Comment = ? WHERE Date = ?", 

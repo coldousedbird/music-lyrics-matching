@@ -1,10 +1,10 @@
 # my
 data/
-temp/
+temp/*
+pretrained_models/
 .syncedlyrics
 *.db
-*.wav
-*.mp3
+
 
 # venv
 mlm-venv/

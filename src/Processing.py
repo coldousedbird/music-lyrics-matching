@@ -1,167 +1,102 @@
 from datetime import datetime
+from time import time
 import syncedlyrics
-
-
+from spleeter.separator import Separator
+from spleeter.audio.adapter import AudioAdapter
 from pydub import AudioSegment
-import numpy as np
-# import librosa
-# import torch
-# from transformers import Wav2Vec2ForCTC, Wav2Vec2Tokenizer
-import speech_recognition as sr
-import concurrent.futures
-from io import BytesIO
-
-# for test_Processing
-from sys import argv
-from PyQt6.QtWidgets import QApplication, QWidget, QFileDialog
+from pydub.silence import detect_nonsilent
+import whisper
 
 
 class Processing:
     def __init__(self) -> None:
+        self.song_path = None
         self.song_name = None
         self.song = None
+        self.audio = None
+        self.rate = None
 
+        self.lyrics_path = None
         self.lyrics_name = None
         self.lyrics = None
 
         self.request_time = None
-        self.result = None
+        self.result = ""
         
     def extract_name_from_path(self, path: str) -> str:
         file = path.rsplit("/", 1)
         return file[-1][:-4] if len(path) > 1 else path[:-4]
 
     def load_song(self, path: str) -> None:
+        self.song_path = path
         self.song_name = self.extract_name_from_path(path)
-        with open(path, 'rb') as song:
+        with open(path, "rb") as song:
             self.song = song.read()
 
-    def load_lyrics(self, path: str) -> None:
-        self.lyrics_name = self.extract_name_from_path(path)
-        with open(path, 'r') as lyrics:
-            self.lyrics = lyrics.read()
 
-    def find(self) -> None:
+    # def load_lyrics(self, path: str) -> None:
+    #     self.lyrics_name = self.extract_name_from_path(path)
+    #     with open(path, 'r') as lyrics:
+    #         self.lyrics = lyrics.read()
+
+    def find_lrc(self) -> None:
         try:
             self.request_time = datetime.now().strftime('%d-%m-%Y %H:%M:%S')
             self.result = syncedlyrics.search(self.song_name, providers=["Lrclib", "NetEase", "Megalobiz"])
         except Exception as e:
-            print(e, "\" occured, skipping track -")
+            print('"', e, "\" occured, skipping track -")
 
-    # Разбиение аудио на сегменты по 5 секунд
-    def process_segment(self, i):
-        segment = self.audio[i:i+5000]
-        # Инициализация распознавателя речи
-        r = sr.Recognizer()
-        with BytesIO() as bio:
-            segment.export(bio, format="wav")
-            bio.seek(0)
-            try:
-                # Распознавание текста в сегменте
-                with sr.AudioFile(bio) as source:
-                    audio_data = r.record(source)
-                    text = r.recognize_google(audio_data, language="en-US")
-                    start_time = i / 1000  # Время начала сегмента в секундах
-                    end_time = (i + 5000) / 1000  # Время окончания сегмента в секундах
-                    return (start_time, end_time, text)
-            except (sr.UnknownValueError, FileNotFoundError):
-                return None
+    # def save_ndarray_to_wav_to_file(self, audio: np.ndarray, rate: int, path) -> None:
+    #     audio_segment = AudioSegment(audio[0].tobytes(), frame_rate=rate, sample_width=2, channels=1)
 
-    def recognize(self) -> None:
+    #     audio_segment = audio_segment.normalize()  # Нормализация аудио
+    #     audio_segment.export(path, format='wav')
+
+
+    def make_lrc(self) -> None:
         self.request_time = datetime.now().strftime('%d-%m-%Y %H:%M:%S')
-        # Загрузка аудио файла
-        song_path = "src/temp/processed_song.mp3"
-        with open(song_path, "wb") as song:
-            song.write(self.song)
+        audioadapter = AudioAdapter.default()
+        self.audio, self.rate = audioadapter.load(self.song_path)
+        self.rate = int(self.rate)
+
+        print('\n>>> separating vocals...')
+        hold_time = time()
+        separator = Separator('spleeter:2stems')
+        stems = separator.separate(self.audio)
+        del stems['accompaniment']
+        separator.save_to_file(sources=stems, audio_descriptor="temp", destination="src")
+        print('done. spent ', time() - hold_time, ' seconds')
+
+
+        vocals = AudioSegment.from_wav("src/temp/vocals.wav")
+        print('\n>>> retrieving nonsilent timestamps...')
+        hold_time = time()
+        vocals_stamps = detect_nonsilent(audio_segment=vocals, silence_thresh=vocals.dBFS-16, min_silence_len=500, seek_step=2)
+        print('done. spent ', time() - hold_time, ' seconds')
+
+        model = whisper.load_model("small", in_memory=True).to("cpu")
+        print('\n>>> transribing vocals...')
+        hold_time = time()
         
-        self.audio = AudioSegment.from_file(song_path, format="mp3")
-
-        # Шумоподавление
-        self.audio = self.audio.apply_gain(-20.0)  # Применение шумоподавления
-        self.audio = self.audio.normalize()  # Нормализация аудио
-
-        # Разделение аудиозаписи на отдельные фрагменты с вокалом
-        threshold = -30  # Порог для определения наличия вокала
-        segments = []
-        current_segment = None
-        print('type: ', type(self.audio.raw_data))
-        print('len: ', len(self.audio))
-
-        # for i, sample in enumerate(self.audio.raw_data):
-        #     if abs(sample) > threshold:
-        #         if current_segment is None:
-        #             current_segment = self.audio[i:i+1]
-        #     else:
-        #         if current_segment is not None:
-        #             segments.append(current_segment)
-        #             current_segment = None
-        # if current_segment is not None:
-        #     segments.append(current_segment)
-        # print('blyaha')
-        # print( segments)
-
-        # # Сохранение очищенной аудиозаписи и отдельных фрагментов
-        # denoised_audio.export("output.mp3", format="mp3")
-        # for i, segment in enumerate(segments):
-        #     segment.export(f"segment_{i+1}.mp3", format="mp3")
-
-        # Улучшение качества аудио
-        #audio_data = self.audio.raw_data         # ???
-
-        # # Загрузка предварительно обученной модели (кэширование)
-        # model = Wav2Vec2ForCTC.from_pretrained("facebook/wav2vec2-base-960h")
-        # tokenizer = Wav2Vec2Tokenizer.from_pretrained("facebook/wav2vec2-base-960h")
-
-        # Создание списка для хранения результатов распознавания
-        # results = []
-
-        # with concurrent.futures.ThreadPoolExecutor() as executor:
-        #     for result in executor.map(self.process_segment, range(0, len(self.audio), 5000)):
-        #         if result:
-        #             results.append(result)
-
-        # # Сортировка результатов по времени начала
-        # results.sort(key=lambda x: x[0])
-
-        # # Вывод результатов распознавания с временными метками
-        # for start_time, end_time, text in results:
-        #     minutes = int(start_time // 60)
-        #     seconds = start_time % 60
-        #     print(f"[{minutes:02d}:{seconds:05.2f}] {text}")
+        for stamp in vocals_stamps:
+            start = stamp[0]/1000
+            end = stamp[1]/1000
             
+            vocals[stamp[0]:stamp[1]].export("src/temp/segment.wav", format='wav')
+                        
+            segment = model.transcribe("src/temp/segment.wav", language="en", temperature=0.0, word_timestamps=False)
+            self.result += f'\n[{int(start//60):02}:{start%60:05.2f}] ' + segment['text'] #  - [{int(end//60):02}:{end%60:05.2f}] - |the end timestamp
+        
+        print('done. spent ', time() - hold_time, ' seconds')
+
 
 # test function for Processing class
 def test_Processing() -> None:
-    # app = QApplication(argv)
-    # window = QWidget()
-    # window.show()
-
-    p = Processing()
-
-    # file_dialog = QFileDialog(window)
-    # file_dialog.setNameFilter("Audio files (*.mp3 *.wav)")
-
-    # if file_dialog.exec():
-    #     path = file_dialog.selectedFiles()[0]
-    #     print(path)
-    #     p.load_song(path)
-    #     print(f"selected song: {p.song_name}")
-    #     print(f"type of song: {type(p.song)}")
-
-    # file_dialog.setNameFilter("Text files (*.txt)")
-    # if file_dialog.exec():
-    #     path = file_dialog.selectedFiles()[0]
-    #     p.load_lyrics(path)
-    #     print(f"selected lyrics: {p.lyrics_name}")
-
-    SONG_PATH = "/run/media/coldousedbird/data/Programming/music-lyrics-matching/data/short_dataset_mp3/genesis - Small Talk.mp3"
-    p.load_song(SONG_PATH)
-
-    p.recognize()
-
-    # print(p.result)
-
-    # exit(app.exec())
+    p = Processing
+    song_path = "tests/queen - All Dead, All Dead.mp3"
+    p.load_song(path=song_path)
+    p.make_lrc()
+    print(p.result)
 
 
 if __name__ == "__main__":
